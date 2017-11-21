@@ -18,7 +18,7 @@ helper   = imp.load_source('fix'     , 'help.py')
 tdrstyle = imp.load_source('tdrstyle', 'tdrstyle.py')
 CMS_lumi = imp.load_source('CMS_lumi', 'CMS_lumi.py') 
 
-xsecsBkg={
+xsecs={
     'QCD'   : 99.1990,
     'TTJets': 864.5,
     'BG1500': 1.,
@@ -55,26 +55,26 @@ def plotStacked(hist, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
   c0.cd()
   c0.SetLogy(logy)
 
-  leg = ROOT.TLegend(0.55,0.50,0.88,0.75,'','brNDC')
+  leg = ROOT.TLegend(0.50,0.60,0.88,0.75,'','brNDC')
   leg.SetBorderSize(0)
   leg.SetFillColor(0)
   leg.SetTextSize(0.030)
   leg.SetMargin(0.2)  
-  leg.SetNColumns(1)
-  leg.SetColumnSeparation(0.0)
+  leg.SetNColumns(2)
+  leg.SetColumnSeparation(0.05)
   leg.SetEntrySeparation(0.05)
 
   fqcd = ROOT.TFile.Open('QCD_Mdijet-1000toInf_PU%i.root' % pu)
   hqcd = fqcd.Get(hist)
   hqcd.Rebin(rebin)
   helper.fix(hqcd)
-  hqcd.Scale(xsecsBkg['QCD']*lumi/nEvts[pu]['QCD'])
+  hqcd.Scale(xsecs['QCD']*lumi/nEvts[pu]['QCD'])
 
   hqcd.SetLineColor(14)
   hqcd.SetFillColor(14)
   hqcd.Draw('hist')
 
-  hqcd.SetMaximum(hqcd.GetMaximum()* 1.3*(100*logy+1))
+  ymax = hqcd.GetMaximum()
   hqcd.GetXaxis().SetRangeUser(xlow,xhigh)
   hqcd.GetXaxis().SetTitle(xtitle)
   hqcd.GetYaxis().SetTitle(ytitle)
@@ -88,15 +88,18 @@ def plotStacked(hist, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
     hsig = copy.deepcopy((fsig.Get(hist)).Clone(hist+'BG%i' % m))
     hsig.Rebin(rebin)
     helper.fix(hsig)
-    hsig.Scale(xsecsBkg['BG%s' % str(m)]*lumi/nEvts[pu]['BG%s' % str(m)])
+    hsig.Scale(xsecs['BG%s' % str(m)]*lumi/nEvts[pu]['BG%s' % str(m)])
+    ymax = max(ymax, hsig.GetMaximum())
     hsig.SetName(hsig.GetName()+"BG%i" % m)
-    hsig.SetLineStyle(1)
+    hsig.SetLineStyle(1+msigs.index(m))
     hsig.SetLineColor(600+(m/100))
     hsig.SetLineWidth(3)
     hsig.Draw('histsame')
     c0.SetSelected(hsig)
     leg.AddEntry(hsig, 'BG%i' % m, 'lf')
     c0.Update()
+
+  hqcd.SetMaximum(ymax* 1.3*(100*logy+1))
 
   leg.Draw()
 
