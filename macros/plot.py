@@ -42,7 +42,7 @@ nEvts={
 
 lumi=3000.
 
-def plotStacked(hist, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
+def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
 
   ROOT.gROOT.SetBatch()
   ROOT.gROOT.SetStyle('Plain')
@@ -51,11 +51,14 @@ def plotStacked(hist, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
   ROOT.gStyle.SetOptFit(0111) 
   ROOT.gStyle.SetErrorX(0.0001);
 
-  c0 = ROOT.TCanvas('c_compare_%s_%i_Logy%i' % (hist, pu, logy),'',800,600)
+  histnames = hists.split(',')
+
+  c0 = ROOT.TCanvas('c_compare_%s_%i_Logy%i' % (hists.replace(',','_'), pu, logy),'',800,600)
   c0.cd()
   c0.SetLogy(logy)
 
   leg = ROOT.TLegend(0.50,0.60,0.88,0.75,'','brNDC')
+  leg.SetHeader('PU = %i' % pu)
   leg.SetBorderSize(0)
   leg.SetFillColor(0)
   leg.SetTextSize(0.030)
@@ -64,8 +67,11 @@ def plotStacked(hist, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
   leg.SetColumnSeparation(0.05)
   leg.SetEntrySeparation(0.05)
 
-  fqcd = ROOT.TFile.Open('QCD_Mdijet-1000toInf_PU%i.root' % pu)
-  hqcd = fqcd.Get(hist)
+  hqcd = ROOT.TH1D()
+  fqcd = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/QCD_Mdijet-1000toInf_PU%i.root' % pu)
+  for hist in histnames:
+    if hqcd.GetName() == '': hqcd = fqcd.Get(hist)
+    else: hqcd.Add(fqcd.Get(hist))
   hqcd.Rebin(rebin)
   helper.fix(hqcd)
   hqcd.Scale(xsecs['QCD']*lumi/nEvts[pu]['QCD'])
@@ -81,11 +87,17 @@ def plotStacked(hist, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
 
   leg.AddEntry(hqcd, 'QCD', 'lf')
 
+  print 'histnames = ', histnames
+
   msigs = [1500, 3000]
   hsig = ROOT.TH1D()
   for m in msigs:
-    fsig = ROOT.TFile.Open('VBF_M%i_W01_PU%i.root' % (m, pu))
-    hsig = copy.deepcopy((fsig.Get(hist)).Clone(hist+'BG%i' % m))
+    fsig = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/VBF_M%i_W01_PU%i.root' % (m, pu))
+    hs = ROOT.TH1D()
+    for h in histnames:
+      if hs.GetName() == '': hs = fsig.Get(h)
+      else: hs.Add(fsig.Get(h))
+    hsig = copy.deepcopy(hs.Clone(hists.replace(',', '_')+'BG%i' % m))
     hsig.Rebin(rebin)
     helper.fix(hsig)
     hsig.Scale(xsecs['BG%s' % str(m)]*lumi/nEvts[pu]['BG%s' % str(m)])
@@ -119,5 +131,24 @@ def plotStacked(hist, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
   c0.SaveAs(c0.GetName()+'.pdf')
   c0.SaveAs(c0.GetName()+'.png')
 
-plotStacked('h_nak4', 0, 'AK4 jet multiplicity', 'Events', 0., 20, 1, 1)
-plotStacked('h_mjj' , 0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
+plotStacked('h_mjj'                       ,   0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
+plotStacked('h_nak8'                      ,   0, 'AK8 jet multiplicity', 'Events', 0., 20, 1, 1)
+plotStacked('h_nak4'                      ,   0, 'AK4 jet multiplicity', 'Events', 0., 20, 1, 1)
+plotStacked('h_ak80pt,h_ak81pt'           ,   0, 'p_{T} (leading two A8 jets) [GeV]', 'Events', 0., 3000., 5, 1)
+plotStacked('h_ak80eta,h_ak81eta'         ,   0, '#eta (leading two A8 jets)', 'Events', -3., 3., 5, 1)
+plotStacked('h_ak80_t2byt1,h_ak81_t2byt1' ,   0, '#tau_{21} (leading two A8 jets)', 'Events', 0., 1., 5, 1)
+plotStacked('h_sj0_deepcsv,h_sj1_deepcsv' ,   0, 'DeepCSV (leading two A8 jets)', 'Events', 0., 1., 5, 1)
+plotStacked('h_vbf0pt,h_vbf0pt'           ,   0, 'p_{T} (VBF jets) [GeV]', 'Events', 0., 1000., 5, 1)
+plotStacked('h_mjjvbf'                    ,   0, 'm(jj) (VBF jets) [GeV]', 'Events', 0., 2000., 5, 1)
+plotStacked('h_deltaEta'                  ,   0, '#Delta#eta(jj) (VBF jets) [GeV]', 'Events', 0., 5., 1, 1)
+
+plotStacked('h_mjj'                       , 200, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
+plotStacked('h_nak8'                      , 200, 'AK8 jet multiplicity', 'Events', 0., 20, 1, 1)
+plotStacked('h_nak4'                      , 200, 'AK4 jet multiplicity', 'Events', 0., 200, 1, 1)
+plotStacked('h_ak80pt,h_ak81pt'           , 200, 'p_{T} (leading two A8 jets) [GeV]', 'Events', 0., 3000., 5, 1)
+plotStacked('h_ak80eta,h_ak81eta'         , 200, '#eta (leading two A8 jets)', 'Events', -3., 3., 5, 1)
+plotStacked('h_ak80_t2byt1,h_ak81_t2byt1' , 200, '#tau_{21} (leading two A8 jets)', 'Events', 0., 1., 5, 1)
+plotStacked('h_sj0_deepcsv,h_sj1_deepcsv' , 200, 'DeepCSV (leading two A8 jets)', 'Events', 0., 1., 5, 1)
+plotStacked('h_vbf0pt,h_vbf0pt'           , 200, 'p_{T} (VBF jets) [GeV]', 'Events', 0., 1000., 5, 1)
+plotStacked('h_mjjvbf'                    , 200, 'm(jj) (VBF jets) [GeV]', 'Events', 0., 2000., 5, 1)
+plotStacked('h_deltaEta'                  , 200, '#Delta#eta(jj) (VBF jets) [GeV]', 'Events', 0., 5., 1, 1)
