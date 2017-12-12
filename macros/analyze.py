@@ -15,48 +15,64 @@ ROOT.gStyle.SetErrorX(0.001)
 ROOT.gStyle.SetPadTickX(1)
 ROOT.gStyle.SetPadTickY(1)
 
+def getHTagEff(ptin, etain):
+  etain = abs(etain)
+  f = ROOT.TFile.Open('heff.root')
+  heff = f.Get('heff')
+  for i in range(0, heff.GetNbinsX()+2):
+    for j in range(0, heff.GetNbinsY()+01):
+      pt       = heff.GetXaxis().GetBinLowEdge(i)
+      eta      = heff.GetYaxis().GetBinLowEdge(j)
+      ptwidth  = heff.GetXaxis().GetBinWidth(i)
+      etawidth = heff.GetYaxis().GetBinWidth(j)
+      if pt <= ptin < pt+ptwidth and eta <= etain < eta+etawidth:
+        return heff.GetBinContent(i,j)
+      else: continue
+  return 0
+
 files  = sys.argv[1]
 
 fout = ROOT.TFile(files.rstrip().replace('txt', 'root'), 'RECREATE')
 fout.cd()
 
-h2_ak8pt_ak8eta          = ROOT.TH2D("h2_ak8pt_ak8eta"         ,";p_{T} (AK8) [GeV]; #eta (AK8);;", 150, 0., 3000, 50, -5, 5)
-h2_ak8pt_ak8eta_htagged  = ROOT.TH2D("h2_ak8pt_ak8eta_htagged" ,";p_{T} (AK8) [GeV]; #eta (AK8);;", 150, 0., 3000, 50, -5, 5)
+h2_ak8pt_ak8eta              = ROOT.TH2D("h2_ak8pt_ak8eta"              ,";p_{T} (AK8) [GeV]; #eta (AK8);;", 150, 0., 3000, 50, -5, 5)
+h2_ak8pt_ak8eta_htagged      = ROOT.TH2D("h2_ak8pt_ak8eta_htagged"      ,";p_{T} (AK8) [GeV]; #eta (AK8);;", 150, 0., 3000, 50, -5, 5)
 
-h2_ak4pt_ak4eta          = ROOT.TH2D("h2_ak4pt_ak4eta"         ,";p_{T} (AK4) [GeV]; #eta (AK4);;", 150, 0., 3000, 50, -5, 5)
-h2_ak4pt_ak4genjetpt     = ROOT.TH2D("h2_ak4pt_ak4genjetpt"    ,";p_{T} (AK4 jets) [GeV]; p_{T} (AK4 genjets) [GeV];Events;" ,300,0.,3000,300,0.,3000)
+h2_ak4pt_ak4eta              = ROOT.TH2D("h2_ak4pt_ak4eta"              ,";p_{T} (AK4) [GeV]; #eta (AK4);;", 150, 0., 3000, 50, -5, 5)
+h2_ak4pt_ak4genjetpt         = ROOT.TH2D("h2_ak4pt_ak4genjetpt"         ,";p_{T} (AK4 jets) [GeV]; p_{T} (AK4 genjets) [GeV];Events;" ,300,0.,3000,300,0.,3000)
 
-h_nak8                   = ROOT.TH1D("h_nak8"                  ,";N(AK8) [GeV]; Events;;"       ,11   ,-0.5  ,10.5 )
-h_nak4                   = ROOT.TH1D("h_nak4"                  ,";N(AK4) [GeV]; Events;;"       ,501  ,-0.5  ,501.5)
+h_nak8                       = ROOT.TH1D("h_nak8"                       ,";N(AK8) [GeV]; Events;;"       ,11   ,-0.5  ,10.5 )
+h_nak4                       = ROOT.TH1D("h_nak4"                       ,";N(AK4) [GeV]; Events;;"       ,501  ,-0.5  ,501.5)
 
-h_ak80pt                 = ROOT.TH1D("h_ak80pt"                ,";p_{T} [GeV]; Events;;"        ,300  ,0.    ,3000 )
-h_ak81pt                 = ROOT.TH1D("h_ak81pt"                ,";p_{T} [GeV]; Events;;"        ,300  ,0.    ,3000 )
-h_ak80eta                = ROOT.TH1D("h_ak80eta"               ,";#eta;;"                       ,200  ,-5    ,5    )
-h_ak81eta                = ROOT.TH1D("h_ak81eta"               ,";#eta;;"                       ,200  ,-5    ,5    )
-h_ak80_tau2_tau1         = ROOT.TH1D("h_ak80_t2byt1"           ,";#tau_{2}/#tau_{1};;"          ,100  ,0     ,1    )
-h_ak81_tau2_tau1         = ROOT.TH1D("h_ak81_t2byt1"           ,";#tau_{2}/#tau_{1} ;;"         ,100  ,0     ,1    )
-h_sdmass_ak80            = ROOT.TH1D("h_sdmass_ak80"           ,";softdropped_mass[GeV];;"      ,100  ,0     ,1000 )
-h_sdmass_ak81            = ROOT.TH1D("h_sdmass_ak81"           ,";softdropped_mass[GeV];;"      ,100  ,0     ,1000 )
+h_ak80pt                     = ROOT.TH1D("h_ak80pt"                     ,";p_{T} [GeV]; Events;;"        ,300  ,0.    ,3000 )
+h_ak81pt                     = ROOT.TH1D("h_ak81pt"                     ,";p_{T} [GeV]; Events;;"        ,300  ,0.    ,3000 )
+h_ak80eta                    = ROOT.TH1D("h_ak80eta"                    ,";#eta;;"                       ,200  ,-5    ,5    )
+h_ak81eta                    = ROOT.TH1D("h_ak81eta"                    ,";#eta;;"                       ,200  ,-5    ,5    )
+h_ak80_tau2_tau1             = ROOT.TH1D("h_ak80_t2byt1"                ,";#tau_{2}/#tau_{1};;"          ,100  ,0     ,1    )
+h_ak81_tau2_tau1             = ROOT.TH1D("h_ak81_t2byt1"                ,";#tau_{2}/#tau_{1} ;;"         ,100  ,0     ,1    )
+h_sdmass_ak80                = ROOT.TH1D("h_sdmass_ak80"                ,";softdropped_mass[GeV];;"      ,100  ,0     ,1000 )
+h_sdmass_ak81                = ROOT.TH1D("h_sdmass_ak81"                ,";softdropped_mass[GeV];;"      ,100  ,0     ,1000 )
 
-h_nvbfpairs              = ROOT.TH1D("h_nvbfpairs"             ,";N(VBF pairs); Events;;"       ,201  ,-0.5  ,200.5 )
-h_vbf0pt                 = ROOT.TH1D("h_vbf0pt"                ,";p_{T} (VBF) [GeV]; Events;;"  ,100  ,0.    ,1000 )
-h_vbf1pt                 = ROOT.TH1D("h_vbf1pt"                ,";p_{T} (VBF) [GeV]; Events;;"  ,100  ,0.    ,1000 )
-h_vbf0eta                = ROOT.TH1D("h_vbf0eta"               ,";#eta (VBF); Events;"          ,200  ,-5    ,5    )
-h_vbf1eta                = ROOT.TH1D("h_vbf1eta"               ,";#eta (VBF); Events;"          ,200  ,-5    ,5    )
-h_deltaEta               = ROOT.TH1D("h_deltaEta"              ,";#delta#eta of VBF jets;;"     ,20   ,0     ,10   )
-h_mjjvbf                 = ROOT.TH1D("h_mjjvbf"                ,";M(jj) (VBF) [GeV]; Events;"   ,200  ,0.    ,2000 )
+h_nvbfpairs                  = ROOT.TH1D("h_nvbfpairs"                  ,";N(VBF pairs); Events;;"       ,201  ,-0.5  ,200.5 )
+h_vbf0pt                     = ROOT.TH1D("h_vbf0pt"                     ,";p_{T} (VBF) [GeV]; Events;;"  ,100  ,0.    ,1000 )
+h_vbf1pt                     = ROOT.TH1D("h_vbf1pt"                     ,";p_{T} (VBF) [GeV]; Events;;"  ,100  ,0.    ,1000 )
+h_vbf0eta                    = ROOT.TH1D("h_vbf0eta"                    ,";#eta (VBF); Events;"          ,200  ,-5    ,5    )
+h_vbf1eta                    = ROOT.TH1D("h_vbf1eta"                    ,";#eta (VBF); Events;"          ,200  ,-5    ,5    )
+h_deltaEta                   = ROOT.TH1D("h_deltaEta"                   ,";#delta#eta of VBF jets;;"     ,20   ,0     ,10   )
+h_mjjvbf                     = ROOT.TH1D("h_mjjvbf"                     ,";M(jj) (VBF) [GeV]; Events;"   ,200  ,0.    ,2000 )
 
-h_sj0_pts                = ROOT.TH1D("h_sj0_pts"               ,";p_{T} of subjet_1;;"          ,300   ,0     ,3000 )
-h_sj1_pts                = ROOT.TH1D("h_sj1_pts"               ,";p_{T} of subjet_2;;"          ,300   ,0     ,3000 )
-h_sj0_csvv2              = ROOT.TH1D("h_sj0_csvv2"             ,";CSVv2 of subjet_1;;"          ,100   ,0.    ,1.   )
-h_sj1_csvv2              = ROOT.TH1D("h_sj1_csvv2"             ,";CSVv2 of subjet_2;;"          ,100   ,0.    ,1.   )
-h_sj0_deepcsv            = ROOT.TH1D("h_sj0_deepcsv"           ,";DeepCSV of subjet_1;;"        ,100   ,0.    ,1.   )
-h_sj1_deepcsv            = ROOT.TH1D("h_sj1_deepcsv"           ,";DeepCSV of subjet_2;;"        ,100   ,0.    ,1.   )
+h_sj0_pts                    = ROOT.TH1D("h_sj0_pts"                    ,";p_{T} of subjet_1;;"          ,300   ,0     ,3000 )
+h_sj1_pts                    = ROOT.TH1D("h_sj1_pts"                    ,";p_{T} of subjet_2;;"          ,300   ,0     ,3000 )
+h_sj0_csvv2                  = ROOT.TH1D("h_sj0_csvv2"                  ,";CSVv2 of subjet_1;;"          ,100   ,0.    ,1.   )
+h_sj1_csvv2                  = ROOT.TH1D("h_sj1_csvv2"                  ,";CSVv2 of subjet_2;;"          ,100   ,0.    ,1.   )
+h_sj0_deepcsv                = ROOT.TH1D("h_sj0_deepcsv"                ,";DeepCSV of subjet_1;;"        ,100   ,0.    ,1.   )
+h_sj1_deepcsv                = ROOT.TH1D("h_sj1_deepcsv"                ,";DeepCSV of subjet_2;;"        ,100   ,0.    ,1.   )
 
-h_mjj_vbfsel             = ROOT.TH1D("h_mjj_vbfsel"            ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
-h_mjj_novbf_nosjbtag     = ROOT.TH1D("h_mjj_novbf_nosjbtag"    ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
-h_mjj_novbf_2sjbtag      = ROOT.TH1D("h_mjj_novbf_2sjbtag"     ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
-h_mjj                    = ROOT.TH1D("h_mjj"                   ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
+h_mjj_vbfsel                 = ROOT.TH1D("h_mjj_vbfsel"                 ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
+h_mjj_vbfsel_scaledHTagEff   = ROOT.TH1D("h_mjj_vbfsel_scaledHTagEff"   ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
+h_mjj_novbf_nosjbtag         = ROOT.TH1D("h_mjj_novbf_nosjbtag"         ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
+h_mjj_novbf_2sjbtag          = ROOT.TH1D("h_mjj_novbf_2sjbtag"          ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
+h_mjj                        = ROOT.TH1D("h_mjj"                        ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
 
 fnames = [line.strip() for line in open(files, 'r')]
 
@@ -187,6 +203,9 @@ for fname in fnames:
 
     if vbfsel:
       h_mjj_vbfsel.Fill(mjj)
+      hjet1eff = getHTagEff(pts[0], etas[0])
+      hjet2eff = getHTagEff(pts[1], etas[1])
+      h_mjj_vbfsel_scaledHTagEff.Fill(mjj, hjet1eff*hjet2eff)
 
       if etasel and msdsel and tau21sel and sjbtagsel:
         h_ak80pt.Fill(pts[0])

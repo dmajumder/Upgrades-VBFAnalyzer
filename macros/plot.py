@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os, sys, imp, copy, ROOT
+import numpy as np
 
 '''
 The script looks for the following input files in the current dir:
@@ -18,11 +19,18 @@ helper   = imp.load_source('fix'     , 'help.py')
 tdrstyle = imp.load_source('tdrstyle', 'tdrstyle.py')
 CMS_lumi = imp.load_source('CMS_lumi', 'CMS_lumi.py') 
 
+ROOT.gROOT.SetBatch()
+ROOT.gROOT.SetStyle('Plain')
+ROOT.gStyle.SetOptTitle(0) 
+ROOT.gStyle.SetOptStat(0000) 
+ROOT.gStyle.SetOptFit(0111) 
+ROOT.gStyle.SetErrorX(0.0001);
+
 xsecs={
     'QCD'   : 99.1990,
     'TTJets': 864.5,
-    'BG1500': 1.,
-    'BG3000': 1.,
+    'BG1500': 0.001,
+    'BG3000': 0.001,
     }
 
 nEvts={
@@ -40,16 +48,9 @@ nEvts={
       }
     }
 
-lumi=3000.
+lumi=3000000.
 
 def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
-
-  ROOT.gROOT.SetBatch()
-  ROOT.gROOT.SetStyle('Plain')
-  ROOT.gStyle.SetOptTitle(0) 
-  ROOT.gStyle.SetOptStat(0000) 
-  ROOT.gStyle.SetOptFit(0111) 
-  ROOT.gStyle.SetErrorX(0.0001);
 
   histnames = hists.split(',')
 
@@ -68,10 +69,10 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
   leg.SetEntrySeparation(0.05)
 
   hqcd = ROOT.TH1D()
-  fqcd = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/QCD_Mdijet-1000toInf_PU%i.root' % pu)
+  fqcd = ROOT.TFile.Open('QCD_Mdijet-1000toInf_PU%i.root' % pu)
   for hist in histnames:
-    if hqcd.GetName() == '': hqcd = fqcd.Get(hist)
-    else: hqcd.Add(fqcd.Get(hist))
+    if hqcd.GetName() == '': hqcd = fqcd.Get('h_mjj_vbfsel_scaledHTagEff')
+    else: hqcd.Add(fqcd.Get('h_mjj_vbfsel_scaledHTagEff'))
   hqcd.Rebin(rebin)
   helper.fix(hqcd)
   hqcd.Scale(xsecs['QCD']*lumi/nEvts[pu]['QCD'])
@@ -89,10 +90,12 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
 
   print 'histnames = ', histnames
 
+  fout = ROOT.TFile('mjj.root', 'recreate')
+
   msigs = [1500, 3000]
   hsig = ROOT.TH1D()
   for m in msigs:
-    fsig = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/VBF_M%i_W01_PU%i.root' % (m, pu))
+    fsig = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/root_files/VBF_M%i_W01_PU%i.root' % (m, pu))
     hs = ROOT.TH1D()
     for h in histnames:
       if hs.GetName() == '': hs = fsig.Get(h)
@@ -102,7 +105,7 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
     helper.fix(hsig)
     hsig.Scale(xsecs['BG%s' % str(m)]*lumi/nEvts[pu]['BG%s' % str(m)])
     ymax = max(ymax, hsig.GetMaximum())
-    hsig.SetName(hsig.GetName()+"BG%i" % m)
+    hsig.SetName("h_mjj_BG%i" % m)
     hsig.SetLineStyle(1+msigs.index(m))
     hsig.SetLineColor(600+(m/100))
     hsig.SetLineWidth(3)
@@ -110,8 +113,18 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
     c0.SetSelected(hsig)
     leg.AddEntry(hsig, 'BG%i' % m, 'lf')
     c0.Update()
+    print "Nsig %s = %f" % (hsig.GetName(),hsig.Integral())
+    fout.cd()
+    hsig.Write()
 
+  hqcd.SetName('h_mjj_QCD')
   hqcd.SetMaximum(ymax* 1.3*(100*logy+1))
+
+  fout.cd()
+  hqcd.Write()
+
+  h_mjj_data_obs = hqcd.Clone('h_mjj_data_obs')
+  h_mjj_data_obs.Write()
 
   leg.Draw()
 
@@ -131,24 +144,74 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
   c0.SaveAs(c0.GetName()+'.pdf')
   c0.SaveAs(c0.GetName()+'.png')
 
-plotStacked('h_mjj'                       ,   0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
-plotStacked('h_nak8'                      ,   0, 'AK8 jet multiplicity', 'Events', 0., 20, 1, 1)
-plotStacked('h_nak4'                      ,   0, 'AK4 jet multiplicity', 'Events', 0., 20, 1, 1)
-plotStacked('h_ak80pt,h_ak81pt'           ,   0, 'p_{T} (leading two A8 jets) [GeV]', 'Events', 0., 3000., 5, 1)
-plotStacked('h_ak80eta,h_ak81eta'         ,   0, '#eta (leading two A8 jets)', 'Events', -3., 3., 5, 1)
-plotStacked('h_ak80_t2byt1,h_ak81_t2byt1' ,   0, '#tau_{21} (leading two A8 jets)', 'Events', 0., 1., 5, 1)
-plotStacked('h_sj0_deepcsv,h_sj1_deepcsv' ,   0, 'DeepCSV (leading two A8 jets)', 'Events', 0., 1., 5, 1)
-plotStacked('h_vbf0pt,h_vbf0pt'           ,   0, 'p_{T} (VBF jets) [GeV]', 'Events', 0., 1000., 5, 1)
-plotStacked('h_mjjvbf'                    ,   0, 'm(jj) (VBF jets) [GeV]', 'Events', 0., 2000., 5, 1)
-plotStacked('h_deltaEta'                  ,   0, '#Delta#eta(jj) (VBF jets) [GeV]', 'Events', 0., 5., 1, 1)
+  print "Nqcd = %f" % hqcd.Integral()
 
-plotStacked('h_mjj'                       , 200, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
-plotStacked('h_nak8'                      , 200, 'AK8 jet multiplicity', 'Events', 0., 20, 1, 1)
-plotStacked('h_nak4'                      , 200, 'AK4 jet multiplicity', 'Events', 0., 200, 1, 1)
-plotStacked('h_ak80pt,h_ak81pt'           , 200, 'p_{T} (leading two A8 jets) [GeV]', 'Events', 0., 3000., 5, 1)
-plotStacked('h_ak80eta,h_ak81eta'         , 200, '#eta (leading two A8 jets)', 'Events', -3., 3., 5, 1)
-plotStacked('h_ak80_t2byt1,h_ak81_t2byt1' , 200, '#tau_{21} (leading two A8 jets)', 'Events', 0., 1., 5, 1)
-plotStacked('h_sj0_deepcsv,h_sj1_deepcsv' , 200, 'DeepCSV (leading two A8 jets)', 'Events', 0., 1., 5, 1)
-plotStacked('h_vbf0pt,h_vbf0pt'           , 200, 'p_{T} (VBF jets) [GeV]', 'Events', 0., 1000., 5, 1)
-plotStacked('h_mjjvbf'                    , 200, 'm(jj) (VBF jets) [GeV]', 'Events', 0., 2000., 5, 1)
-plotStacked('h_deltaEta'                  , 200, '#Delta#eta(jj) (VBF jets) [GeV]', 'Events', 0., 5., 1, 1)
+  fout.Close()
+
+plotStacked('h_mjj'                       ,   0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
+#plotStacked('h_nak8'                      ,   0, 'AK8 jet multiplicity', 'Events', 0., 20, 1, 1)
+#plotStacked('h_nak4'                      ,   0, 'AK4 jet multiplicity', 'Events', 0., 20, 1, 1)
+#plotStacked('h_ak80pt,h_ak81pt'           ,   0, 'p_{T} (leading two A8 jets) [GeV]', 'Events', 0., 3000., 5, 1)
+#plotStacked('h_ak80eta,h_ak81eta'         ,   0, '#eta (leading two A8 jets)', 'Events', -3., 3., 5, 1)
+#plotStacked('h_ak80_t2byt1,h_ak81_t2byt1' ,   0, '#tau_{21} (leading two A8 jets)', 'Events', 0., 1., 5, 1)
+#plotStacked('h_sj0_deepcsv,h_sj1_deepcsv' ,   0, 'DeepCSV (leading two A8 jets)', 'Events', 0., 1., 5, 1)
+#plotStacked('h_vbf0pt,h_vbf0pt'           ,   0, 'p_{T} (VBF jets) [GeV]', 'Events', 0., 1000., 5, 1)
+#plotStacked('h_mjjvbf'                    ,   0, 'm(jj) (VBF jets) [GeV]', 'Events', 0., 2000., 5, 1)
+#plotStacked('h_deltaEta'                  ,   0, '#Delta#eta(jj) (VBF jets) [GeV]', 'Events', 0., 5., 1, 1)
+#
+#plotStacked('h_mjj'                       , 200, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
+#plotStacked('h_nak8'                      , 200, 'AK8 jet multiplicity', 'Events', 0., 20, 1, 1)
+#plotStacked('h_nak4'                      , 200, 'AK4 jet multiplicity', 'Events', 0., 200, 1, 1)
+#plotStacked('h_ak80pt,h_ak81pt'           , 200, 'p_{T} (leading two A8 jets) [GeV]', 'Events', 0., 3000., 5, 1)
+#plotStacked('h_ak80eta,h_ak81eta'         , 200, '#eta (leading two A8 jets)', 'Events', -3., 3., 5, 1)
+#plotStacked('h_ak80_t2byt1,h_ak81_t2byt1' , 200, '#tau_{21} (leading two A8 jets)', 'Events', 0., 1., 5, 1)
+#plotStacked('h_sj0_deepcsv,h_sj1_deepcsv' , 200, 'DeepCSV (leading two A8 jets)', 'Events', 0., 1., 5, 1)
+#plotStacked('h_vbf0pt,h_vbf0pt'           , 200, 'p_{T} (VBF jets) [GeV]', 'Events', 0., 1000., 5, 1)
+#plotStacked('h_mjjvbf'                    , 200, 'm(jj) (VBF jets) [GeV]', 'Events', 0., 2000., 5, 1)
+#plotStacked('h_deltaEta'                  , 200, '#Delta#eta(jj) (VBF jets) [GeV]', 'Events', 0., 5., 1, 1)
+
+def htagEff(fname):
+
+  f = ROOT.TFile.Open(fname)
+  hd = f.Get('h2_ak8pt_ak8eta')
+  hn = f.Get('h2_ak8pt_ak8eta_htagged')
+
+  ptbins = [300., 500., 1000., 3000.]
+  etabins = [0., 0.8, 2.4]
+  hden = ROOT.TH2D('hden', '', len(ptbins)-1, np.asarray(ptbins, 'd'), len(etabins)-1, np.asarray(etabins, 'd'))
+  hnum = ROOT.TH2D('hnum', '', len(ptbins)-1, np.asarray(ptbins, 'd'), len(etabins)-1, np.asarray(etabins, 'd'))
+
+  nbinsx = hd.GetNbinsX()
+  nbinsy = hd.GetNbinsY()
+
+  for i in range(0, nbinsx+1):
+    for j in range(0, nbinsy+1):
+      pt = hd.GetXaxis().GetBinCenter(i)
+      eta = abs(hd.GetYaxis().GetBinCenter(j))
+      d = hd.GetBinContent(i, j)
+      n = hn.GetBinContent(i, j)
+      hden.Fill(pt, eta, d)
+      hnum.Fill(pt, eta, n)
+
+  heff = hnum.Clone('heff')
+  heff.Divide(hden)
+
+  for i in range(1, heff.GetNbinsX()+1):
+    for j in range(1, heff.GetNbinsY()+1):
+      print "pt %f eta %f eff %f" % (heff.GetXaxis().GetBinCenter(i), heff.GetYaxis().GetBinCenter(j), heff.GetBinContent(i, j))
+
+  ceff = ROOT.TCanvas('ceff_htag', '', 800, 600)
+  ceff.cd()
+  heff.Draw('colz')
+  ceff.SaveAs(ceff.GetName()+'.pdf')
+
+  fout = ROOT.TFile('heff.root', 'recreate')
+  fout.cd()
+  hnum.Write()
+  hden.Write()
+  heff.Write()
+  fout.Close()
+
+  return heff
+
+#htagEff('/afs/cern.ch/user/l/lata/public/plots/QCD_0PU.root')
