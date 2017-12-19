@@ -69,7 +69,8 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
   leg.SetEntrySeparation(0.05)
 
   hqcd = ROOT.TH1D()
-  fqcd = ROOT.TFile.Open('QCD_Mdijet-1000toInf_PU%i.root' % pu)
+  #fqcd = ROOT.TFile.Open('QCD_Mdijet-1000toInf_PU%i.root' % pu)
+  fqcd = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/QCD_%iPU.root' % pu)
   for hist in histnames:
     if hqcd.GetName() == '': hqcd = fqcd.Get('h_mjj_vbfsel_scaledHTagEff')
     else: hqcd.Add(fqcd.Get('h_mjj_vbfsel_scaledHTagEff'))
@@ -95,6 +96,7 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
   msigs = [1500, 3000]
   hsig = ROOT.TH1D()
   for m in msigs:
+    #fsig = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/root_files/VBF_M%i_W01_PU%i.root' % (m, pu))
     fsig = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/root_files/VBF_M%i_W01_PU%i.root' % (m, pu))
     hs = ROOT.TH1D()
     for h in histnames:
@@ -148,7 +150,8 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
 
   fout.Close()
 
-plotStacked('h_mjj'                       ,   0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
+plotStacked('h_mjj'                       ,   200, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
+#plotStacked('h_mjj'                       ,   0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
 #plotStacked('h_nak8'                      ,   0, 'AK8 jet multiplicity', 'Events', 0., 20, 1, 1)
 #plotStacked('h_nak4'                      ,   0, 'AK4 jet multiplicity', 'Events', 0., 20, 1, 1)
 #plotStacked('h_ak80pt,h_ak81pt'           ,   0, 'p_{T} (leading two A8 jets) [GeV]', 'Events', 0., 3000., 5, 1)
