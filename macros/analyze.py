@@ -74,6 +74,19 @@ h_mjj_novbf_nosjbtag         = ROOT.TH1D("h_mjj_novbf_nosjbtag"         ,";M(jj)
 h_mjj_novbf_2sjbtag          = ROOT.TH1D("h_mjj_novbf_2sjbtag"          ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
 h_mjj                        = ROOT.TH1D("h_mjj"                        ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
 
+h_cutflow                    = ROOT.TH1D("h_cutflow"                    ,";;Efficiency;"                 ,10   ,0.5    ,10.5 )
+
+h_cutflow.GetXaxis().SetBinLabel(1 ,"All evts") ; 
+h_cutflow.GetXaxis().SetBinLabel(2 ,"AK8 jets") ; 
+h_cutflow.GetXaxis().SetBinLabel(3 ,"p_{T}+#eta") ; 
+h_cutflow.GetXaxis().SetBinLabel(4 ,"#Delta#Eta(JJ)") ; 
+h_cutflow.GetXaxis().SetBinLabel(5 ,"#tau_{21}") ; 
+h_cutflow.GetXaxis().SetBinLabel(6 ,"M(J)") ; 
+h_cutflow.GetXaxis().SetBinLabel(7 ,"> 1 Subjet b") ; 
+h_cutflow.GetXaxis().SetBinLabel(8 ,"> 2 Subjet b") ; 
+h_cutflow.GetXaxis().SetBinLabel(9 ,"> 3 Subjet b") ; 
+h_cutflow.GetXaxis().SetBinLabel(10,"VBF") ; 
+
 fnames = [line.strip() for line in open(files, 'r')]
 
 try: maxEvts = int(sys.argv[2])
@@ -123,25 +136,32 @@ for fname in fnames:
     for i in range(0, len(pts_ak4gen)):
       h2_ak4pt_ak4genjetpt.Fill(pts_ak4[i], pts_ak4gen[i])
 
+    h_cutflow.Fill(1)
+
     ### Selecting at least two AK8 jets with two subjets, and at least two AK4 jets per event:
     if nak8 < 2 or nak4 < 2 or len(sj0_pts) < 2 or len(sj1_pts) < 2: continue
 
     h_nak8.Fill(nak8)
     h_nak4.Fill(nak4)
 
+    deepcsvl = 0.2219 
+    deepcsvm = 0.6324 
+
     ### Higgs jet sel:
 
     ptsel      = pts[0] > 300 and pts[1] > 300
     etasel     = abs(etas[0]) < 3 and abs(etas[1]) < 3 
-    msdsel     = 80 < sd_masses[0] < 160 and 60 < sd_masses[1] < 140
+    detasel    = abs(etas[0] - etas[1]) < 1.0
     tau21sel   = tau2s[0]/tau1s[0] < 0.6 and tau2s[1]/tau1s[1] < 0.6
-    sjbtagsel  = deepcsv_sj0s[0] > 0.6324 and deepcsv_sj1s[0] > 0.6324  and deepcsv_sj0s[1] > 0.6324 and deepcsv_sj1s[1] > 0.6324 
-    hjetssel   = ptsel and etasel and msdsel and tau21sel and sjbtagsel
+    msdsel     = 80 < sd_masses[0] < 160 and 60 < sd_masses[1] < 140
 
-    sjbtag_1 = deepcsv_sj0s[0] > 0.6324 or deepcsv_sj1s[0] > 0.6324  or deepcsv_sj0s[1] > 0.6324 or deepcsv_sj1s[1] > 0.6324
-    sjbtag_2 = (deepcsv_sj0s[0] > 0.6324 or deepcsv_sj1s[0] > 0.6324) and (deepcsv_sj0s[1] > 0.6324 or deepcsv_sj1s[1] > 0.6324) 
-    sjbtag_3 = ( (deepcsv_sj0s[0] > 0.6324 and deepcsv_sj1s[0] > 0.6324) and (deepcsv_sj0s[1] > 0.6324 or deepcsv_sj1s[1] > 0.6324) ) or\
-        ( (deepcsv_sj0s[0] > 0.6324 or deepcsv_sj1s[0] > 0.6324) and (deepcsv_sj0s[1] > 0.6324 and deepcsv_sj1s[1] > 0.6324) )
+    sjbtag_1 = deepcsv_sj0s[0] > deepcsvl or deepcsv_sj1s[0] > deepcsvl  or deepcsv_sj0s[1] > deepcsvl or deepcsv_sj1s[1] > deepcsvl
+    sjbtag_2 = (deepcsv_sj0s[0] > deepcsvl or deepcsv_sj1s[0] > deepcsvl) and (deepcsv_sj0s[1] > deepcsvl or deepcsv_sj1s[1] > deepcsvl) 
+    sjbtag_3 = ( (deepcsv_sj0s[0] > deepcsvl and deepcsv_sj1s[0] > deepcsvl) and (deepcsv_sj0s[1] > deepcsvl or deepcsv_sj1s[1] > deepcsvl) ) or\
+        ( (deepcsv_sj0s[0] > deepcsvl or deepcsv_sj1s[0] > deepcsvl) and (deepcsv_sj0s[1] > deepcsvl and deepcsv_sj1s[1] > deepcsvl) )
+    sjbtag_4 = deepcsv_sj0s[0] > deepcsvl and deepcsv_sj1s[0] > deepcsvl  and deepcsv_sj0s[1] > deepcsvl and deepcsv_sj1s[1] > deepcsvl 
+
+    hjetssel   = ptsel and etasel and msdsel and tau21sel 
 
     ### Select AK4 jets for VBF pair identification
     p4_ak4sel = []
@@ -151,11 +171,9 @@ for fname in fnames:
         p4.SetPtEtaPhiE(pts_ak4[i], etas_ak4[i], phis_ak4[i], energies_ak4[i])
         p4_ak4sel.append(p4)
         h2_ak4pt_ak4eta.Fill(pts_ak4[i], etas_ak4[i])
-        h2_ak4pt_ak4eta.Fill(pts_ak4[i], etas_ak4[i])
 
     ### Find VBF jet pairs:
     nvbfpairs = 0
-    vbfjetpairs = []
     for i in range(0, len(p4_ak4sel)):
       p40 = p4_ak4sel[i]
       for j in range(i+1, len(p4_ak4sel)):
@@ -164,14 +182,11 @@ for fname in fnames:
         mjjvbf = (p40+p41).Mag()
         if detavbf > 4. and mjjvbf > 300.:
           nvbfpairs += 1
-          vbfjets = (p40, p41)
-          vbfjetpairs.append(vbfjets)
         ### Fill VBF related quantities
-        if detavbf > 4. and hjetssel:
+        if hjetssel:
           h_mjjvbf.Fill(mjjvbf)
-        if mjjvbf > 300. and hjetssel:
           h_deltaEta.Fill(detavbf)
-        if detavbf > 4. and mjjvbf > 300. and hjetssel:
+          if detavbf > 4. and mjjvbf > 300.:
           h_vbf0pt.Fill(p40.Pt())
           h_vbf1pt.Fill(p41.Pt())
           h_vbf0eta.Fill(p40.Eta())
@@ -179,16 +194,34 @@ for fname in fnames:
     ### VBF jet sel:
     vbfsel = nvbfpairs > 0
 
+    h_cutflow.Fill(2)
+    if ptsel and etasel: 
+      h_cutflow.Fill(3)
+      if detasel:
+        h_cutflow.Fill(4)
+        if tau21sel:
+          h_cutflow.Fill(5)
+          if msdsel:
+            h_cutflow.Fill(6)
+            if sjbtag_2:
+              h_cutflow.Fill(7)
+              if sjbtag_3:
+                h_cutflow.Fill(8)
+                if sjbtag_4:
+                  h_cutflow.Fill(9)
+              if vbfsel:
+                h_cutflow.Fill(10)
+
     h_nvbfpairs.Fill(nvbfpairs)
 
     h2_ak8pt_ak8eta.Fill(pts[0], etas[0])
     h2_ak8pt_ak8eta.Fill(pts[1], etas[1])
    
     ### Jet 1 passing Higgs tagging:
-    if 80 < sd_masses[0] < 160 and tau2s[0]/tau1s[0] < 0.6 and deepcsv_sj0s[0] > 0.6324 and deepcsv_sj1s[0] > 0.6324:
+    if 80 < sd_masses[0] < 160 and tau2s[0]/tau1s[0] < 0.6 and deepcsv_sj0s[0] > deepcsvl and deepcsv_sj1s[0] > deepcsvl:
       h2_ak8pt_ak8eta_htagged.Fill(pts[0], etas[0])
     ### Jet 2 passing Higgs tagging:
-    if 80 < sd_masses[1] < 160 and tau2s[1]/tau1s[1] < 0.6 and deepcsv_sj0s[1] > 0.6324 and deepcsv_sj1s[1] > 0.6324:
+    if 80 < sd_masses[1] < 160 and tau2s[1]/tau1s[1] < 0.6 and deepcsv_sj0s[1] > deepcsvl and deepcsv_sj1s[1] > deepcsvl:
       h2_ak8pt_ak8eta_htagged.Fill(pts[1], etas[1])
 
     ### Fill Higgs jet quantities after VBF selection:
@@ -246,6 +279,8 @@ for fname in fnames:
       h_mjj.Fill(mjj)
                                  
     ievt += 1
+
+h_cutflow.Scale(1./h_cutflow.GetBinContent(1))
 
 fout.Write()
 fout.Close()
