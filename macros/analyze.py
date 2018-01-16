@@ -163,6 +163,8 @@ for fname in fnames:
 
     hjetssel   = ptsel and etasel and msdsel and tau21sel 
 
+    sjbtagsel = sjbtag_3
+
     ### Select AK4 jets for VBF pair identification
     p4_ak4sel = []
     for i in range(0,nak4):
@@ -187,10 +189,10 @@ for fname in fnames:
           h_mjjvbf.Fill(mjjvbf)
           h_deltaEta.Fill(detavbf)
           if detavbf > 4. and mjjvbf > 300.:
-          h_vbf0pt.Fill(p40.Pt())
-          h_vbf1pt.Fill(p41.Pt())
-          h_vbf0eta.Fill(p40.Eta())
-          h_vbf1eta.Fill(p41.Eta())
+            h_vbf0pt.Fill(p40.Pt())
+            h_vbf1pt.Fill(p41.Pt())
+            h_vbf0eta.Fill(p40.Eta())
+            h_vbf1eta.Fill(p41.Eta())
     ### VBF jet sel:
     vbfsel = nvbfpairs > 0
 
@@ -274,9 +276,9 @@ for fname in fnames:
       if ptsel and etasel and msdsel and tau21sel and sjbtag_2:
         h_mjj_novbf_2sjbtag.Fill(mjj)
 
-    ### Full event selection
-    if hjetssel and vbfsel:
-      h_mjj.Fill(mjj)
+      ### Full event selection
+      if hjetssel and sjbtagsel:
+        h_mjj.Fill(mjj)
                                  
     ievt += 1
 
