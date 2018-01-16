@@ -30,20 +30,23 @@ xsecs={
     'QCD'   : 99.1990,
     'TTJets': 864.5,
     'BG1500': 0.001,
+    'BG2000': 0.001,
     'BG3000': 0.001,
     }
 
 nEvts={
     0: {
-      'QCD':     4098542, 
-      'TTJets':  4979816,
-      'BG1500':  80200,
-      'BG3000':  91351,
+      'QCD':    4098542, 
+      'TTJets': 4979816,
+      'BG1500': 80200,
+      'BG2000': 100000,
+      'BG3000': 91351,
       },
     200: {
       'QCD':    3802314,
       'TTJets': 2874776,
       'BG1500': 27720,
+      'BG2000': 818500,
       'BG3000': 87507,
       }
     }
@@ -70,7 +73,8 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
 
   hqcd = ROOT.TH1D()
   #fqcd = ROOT.TFile.Open('QCD_Mdijet-1000toInf_PU%i.root' % pu)
-  fqcd = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/QCD_%iPU.root' % pu)
+  #fqcd = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/QCD_%iPU.root' % pu)
+  fqcd = ROOT.TFile.Open('/afs/cern.ch/work/l/lata/public/FS_root/root_btag_wpm/root_files6/QCD_%iPU.root' % pu)
   for hist in histnames:
     if hqcd.GetName() == '': hqcd = fqcd.Get('h_mjj_vbfsel_scaledHTagEff')
     else: hqcd.Add(fqcd.Get('h_mjj_vbfsel_scaledHTagEff'))
@@ -91,13 +95,13 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
 
   print 'histnames = ', histnames
 
-  fout = ROOT.TFile('mjj.root', 'recreate')
+  fout = ROOT.TFile('mjj_PU%i.root' % pu, 'recreate')
 
-  msigs = [1500, 3000]
+  msigs = [1500, 2000, 3000]
   hsig = ROOT.TH1D()
   for m in msigs:
     #fsig = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/root_files/VBF_M%i_W01_PU%i.root' % (m, pu))
-    fsig = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/root_files/VBF_M%i_W01_PU%i.root' % (m, pu))
+    fsig = ROOT.TFile.Open('/afs/cern.ch/work/l/lata/public/FS_root/root_btag_wpm_cutflow/VBF_M%i_W01_PU%i.root' % (m, pu))
     hs = ROOT.TH1D()
     for h in histnames:
       if hs.GetName() == '': hs = fsig.Get(h)
@@ -151,6 +155,8 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
   fout.Close()
 
 plotStacked('h_mjj'                       ,   200, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
+plotStacked('h_mjj'                       ,     0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
+
 #plotStacked('h_mjj'                       ,   0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
 #plotStacked('h_nak8'                      ,   0, 'AK8 jet multiplicity', 'Events', 0., 20, 1, 1)
 #plotStacked('h_nak4'                      ,   0, 'AK4 jet multiplicity', 'Events', 0., 20, 1, 1)
