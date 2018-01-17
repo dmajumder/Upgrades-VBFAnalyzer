@@ -155,15 +155,15 @@ for fname in fnames:
     tau21sel   = tau2s[0]/tau1s[0] < 0.6 and tau2s[1]/tau1s[1] < 0.6
     msdsel     = 80 < sd_masses[0] < 160 and 60 < sd_masses[1] < 140
 
-    sjbtag_1 = deepcsv_sj0s[0] > deepcsvl or deepcsv_sj1s[0] > deepcsvl  or deepcsv_sj0s[1] > deepcsvl or deepcsv_sj1s[1] > deepcsvl
-    sjbtag_2 = (deepcsv_sj0s[0] > deepcsvl or deepcsv_sj1s[0] > deepcsvl) and (deepcsv_sj0s[1] > deepcsvl or deepcsv_sj1s[1] > deepcsvl) 
-    sjbtag_3 = ( (deepcsv_sj0s[0] > deepcsvl and deepcsv_sj1s[0] > deepcsvl) and (deepcsv_sj0s[1] > deepcsvl or deepcsv_sj1s[1] > deepcsvl) ) or\
-        ( (deepcsv_sj0s[0] > deepcsvl or deepcsv_sj1s[0] > deepcsvl) and (deepcsv_sj0s[1] > deepcsvl and deepcsv_sj1s[1] > deepcsvl) )
-    sjbtag_4 = deepcsv_sj0s[0] > deepcsvl and deepcsv_sj1s[0] > deepcsvl  and deepcsv_sj0s[1] > deepcsvl and deepcsv_sj1s[1] > deepcsvl 
+    sjbtag_1 = deepcsv_sj0s[0] > deepcsvm or deepcsv_sj1s[0] > deepcsvm  or deepcsv_sj0s[1] > deepcsvm or deepcsv_sj1s[1] > deepcsvm
+    sjbtag_2 = (deepcsv_sj0s[0] > deepcsvm or deepcsv_sj1s[0] > deepcsvm) and (deepcsv_sj0s[1] > deepcsvm or deepcsv_sj1s[1] > deepcsvm) 
+    sjbtag_3 = ( (deepcsv_sj0s[0] > deepcsvm and deepcsv_sj1s[0] > deepcsvm) and (deepcsv_sj0s[1] > deepcsvm or deepcsv_sj1s[1] > deepcsvm) ) or\
+        ( (deepcsv_sj0s[0] > deepcsvm or deepcsv_sj1s[0] > deepcsvm) and (deepcsv_sj0s[1] > deepcsvm and deepcsv_sj1s[1] > deepcsvm) )
+    sjbtag_4 = deepcsv_sj0s[0] > deepcsvm and deepcsv_sj1s[0] > deepcsvm  and deepcsv_sj0s[1] > deepcsvm and deepcsv_sj1s[1] > deepcsvm 
 
     hjetssel   = ptsel and etasel and msdsel and tau21sel 
 
-    sjbtagsel = sjbtag_3
+    sjbtagsel = sjbtag_4
 
     ### Select AK4 jets for VBF pair identification
     p4_ak4sel = []
