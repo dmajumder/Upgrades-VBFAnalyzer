@@ -46,7 +46,7 @@ nEvts={
       'QCD':    3802314,
       'TTJets': 2874776,
       'BG1500': 27720,
-      'BG2000': 818500,
+      'BG2000': 81850,
       'BG3000': 87507,
       }
     }
@@ -101,7 +101,7 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
   hsig = ROOT.TH1D()
   for m in msigs:
     #fsig = ROOT.TFile.Open('/afs/cern.ch/user/l/lata/public/plots/root_files/VBF_M%i_W01_PU%i.root' % (m, pu))
-    fsig = ROOT.TFile.Open('/afs/cern.ch/work/l/lata/public/FS_root/root_btag_wpm_cutflow/VBF_M%i_W01_PU%i.root' % (m, pu))
+    fsig = ROOT.TFile.Open('/afs/cern.ch/work/l/lata/public/FS_root/root_btag_wpm/root_files6/VBF_M%i_W01_PU%i.root' % (m, pu))
     hs = ROOT.TH1D()
     for h in histnames:
       if hs.GetName() == '': hs = fsig.Get(h)
