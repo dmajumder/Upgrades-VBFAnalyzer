@@ -211,8 +211,8 @@ for fname in fnames:
                 h_cutflow.Fill(8)
                 if sjbtag_4:
                   h_cutflow.Fill(9)
-              if vbfsel:
-                h_cutflow.Fill(10)
+                  if vbfsel:
+                    h_cutflow.Fill(10)
 
     h_nvbfpairs.Fill(nvbfpairs)
 
