@@ -53,6 +53,72 @@ nEvts={
 
 lumi=3000000.
 
+def signalEff():
+
+  hframe = ROOT.TH1D("hframe",";;Efficiency;" ,10 ,0.5 ,10.5 )
+  hframe.GetXaxis().SetBinLabel(1 ,"All evts") ; 
+  hframe.GetXaxis().SetBinLabel(2 ,"AK8 jets") ; 
+  hframe.GetXaxis().SetBinLabel(3 ,"p_{T}+#eta") ; 
+  hframe.GetXaxis().SetBinLabel(4 ,"#Delta#Eta(JJ)") ; 
+  hframe.GetXaxis().SetBinLabel(5 ,"#tau_{21}") ; 
+  hframe.GetXaxis().SetBinLabel(6 ,"M(J)") ; 
+  hframe.GetXaxis().SetBinLabel(7 ,"> 1 Subjet b") ; 
+  hframe.GetXaxis().SetBinLabel(8 ,"> 2 Subjet b") ; 
+  hframe.GetXaxis().SetBinLabel(9 ,"> 3 Subjet b") ; 
+  hframe.GetXaxis().SetBinLabel(10,"VBF") ;  
+  hframe.SetMaximum(25.001)
+  hframe.SetMinimum(0.0001)
+
+  c = ROOT.TCanvas('c_sigEff', '', 800, 600)
+  c.cd()
+  c.SetLogy(1)
+
+  hframe.Draw()
+  c.SetSelected(hframe)
+  c.Update()
+
+  leg = ROOT.TLegend(0.50,0.60,0.88,0.75,'','brNDC')
+  leg.SetBorderSize(0)
+  leg.SetFillColor(0)
+  leg.SetTextSize(0.030)
+  leg.SetMargin(0.2)  
+  leg.SetNColumns(2)
+  leg.SetColumnSeparation(0.05)
+  leg.SetEntrySeparation(0.05)
+
+  masses = [1500, 3000]
+  pus = [0, 200]
+  for m in masses:
+    for pu in pus:
+      f = ROOT.TFile.Open('VBF_M%i_W01_PU%i.root' % (m, pu), 'read')
+      h = f.Get('h_cutflow')
+      h_cutflow = copy.deepcopy(h.Clone('h_cutflow_M%i_PU%i' % (m, pu)))
+      h_cutflow.SetLineColor(600+(m/100))
+      h_cutflow.SetLineWidth(2)
+      h_cutflow.SetLineStyle(1 + pus.index(pu))
+      h_cutflow.Draw('histsame')
+      c.SetSelected(h_cutflow)
+      leg.AddEntry(h_cutflow, "BG%i PU=%i" % (m, pu), 'lp')
+      c.Update()
+
+  leg.Draw()
+
+  c.RedrawAxis()
+  c.Update()
+
+  CMS_lumi.lumi_14TeV = ""
+  CMS_lumi.writeExtraText = 1
+  CMS_lumi.extraText = "Simulation Preliminary"
+        
+  iPos = 33
+  if( iPos==0 ): CMS_lumi.relPosX = 0.13
+       
+  CMS_lumi.CMS_lumi(c, 5, iPos)
+  c.Update() 
+ 
+  c.SaveAs('%s.pdf' % c.GetName())
+  c.SaveAs('%s.png' % c.GetName())
+
 def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
 
   histnames = hists.split(',')
@@ -154,8 +220,10 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
 
   fout.Close()
 
-plotStacked('h_mjj'                       ,   200, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
-plotStacked('h_mjj'                       ,     0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
+signalEff()
+
+#plotStacked('h_mjj'                       ,   200, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
+#plotStacked('h_mjj'                       ,     0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
 
 #plotStacked('h_mjj'                       ,   0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
 #plotStacked('h_nak8'                      ,   0, 'AK8 jet multiplicity', 'Events', 0., 20, 1, 1)
