@@ -249,8 +249,8 @@ VBFAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     ak8jets_.sj0phi          .push_back(sdsubjets.at(0)->phi()) ; 
     ak8jets_.sj1phi          .push_back(sdsubjets.at(1)->phi()) ; 
     ak8jets_.sj0partonFlavour.push_back(sdsubjets.at(0)->partonFlavour()); 
-    ak8jets_.sj1hadronFlavour.push_back(sdsubjets.at(1)->hadronFlavour()); 
-    ak8jets_.sj0partonFlavour.push_back(sdsubjets.at(0)->partonFlavour()); 
+    ak8jets_.sj0hadronFlavour.push_back(sdsubjets.at(0)->hadronFlavour()); 
+    ak8jets_.sj1partonFlavour.push_back(sdsubjets.at(1)->partonFlavour()); 
     ak8jets_.sj1hadronFlavour.push_back(sdsubjets.at(1)->hadronFlavour()); 
     ak8jets_.sj0csvv2        .push_back(sdsubjets.at(0)->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags"));
     ak8jets_.sj1csvv2        .push_back(sdsubjets.at(1)->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags"));
