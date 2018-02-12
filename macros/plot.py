@@ -382,3 +382,88 @@ labels = ['PU200', 'PU0']
 plotCompare(fins, "h_nvbfpairs", labels)
 
 #htagEff('/afs/cern.ch/user/l/lata/public/plots/QCD_0PU.root')
+
+def getCDF(h):
+  hcdf = h.Clone(h.GetName()+"_cdf")
+  hcdf.Reset()
+  for i in range(1, h.GetNbinsX()+1):
+    hcdf.Fill(h.GetBinCenter(i), h.Integral(i, h.GetNbinsX()) )
+  return hcdf
+
+def getROC(hs, hb):
+  ns = hs.GetNbinsX()
+  nb = hs.GetNbinsX()
+
+  xlo_s = hs.GetBinLowEdge(1)
+  xlo_b = hb.GetBinLowEdge(1)
+
+  xhi_s = hs.GetBinLowEdge(ns) + hs.GetBinWidth(ns)
+  xhi_b = hb.GetBinLowEdge(nb) + hs.GetBinWidth(nb)
+
+  if xhi_s != xhi_b and  xlo_s != xlo_b:
+    print "sig and bkg have different ranges"
+    return -1
+  else:
+    print 'OK'
+  hs_cdf = getCDF(hs)
+  hb_cdf = getCDF(hb)
+
+  hs_cdf.Scale(1./hs_cdf.GetBinContent(1))
+  hb_cdf.Scale(1./hb_cdf.GetBinContent(1))
+
+  sigeff = []
+  bkgeff = []
+
+  for i in range(ns-1, 0, -1):
+    print "i = %i sigeff = %f bkgeff = %f" % (i, hs_cdf.GetBinContent(i), hb_cdf.GetBinContent(i))
+    sigeff.append(hs_cdf.GetBinContent(i))
+    bkgeff.append(hb_cdf.GetBinContent(i))
+
+  groc = ROOT.TGraph(ns, np.asarray(sigeff, 'd'), np.asarray(bkgeff, 'd'))
+
+  return groc
+
+def makeROC():
+  fs = ROOT.TFile.Open("/afs/cern.ch/user/l/lata/public/plots/VBF_M1500_W01_PU200.root", "READ")
+  fb = ROOT.TFile.Open("/afs/cern.ch/user/l/lata/public/plots/QCD_Mdijet-1000toInf_PU200.root", "READ")
+  
+  hdeepcsv_sig = fs.Get('h_sj0_deepcsv') + fs.Get('h_sj1_deepcsv')
+  hdeepcsv_bkg = fb.Get('h_sj0_deepcsv') + fb.Get('h_sj1_deepcsv')
+  
+  hcsvv2_sig = fs.Get('h_sj0_csvv2') + fs.Get('h_sj1_csvv2')
+  hcsvv2_bkg = fb.Get('h_sj0_csvv2') + fb.Get('h_sj1_csvv2')
+  
+  groc_deepcsv = getROC(hdeepcsv_sig, hdeepcsv_bkg)
+  groc_csvv2 = getROC(hcsvv2_sig, hcsvv2_bkg)
+  
+  ROOT.gROOT.SetBatch()
+  ROOT.gROOT.SetStyle('Plain')
+  ROOT.gStyle.SetOptTitle(0) 
+  ROOT.gStyle.SetOptStat(0000) 
+  ROOT.gStyle.SetOptFit(0111) 
+  ROOT.gStyle.SetErrorX(0.0001);
+  
+  c = ROOT.TCanvas('c_roc_PU0', '', 800, 600)
+  c.cd()
+  groc_deepcsv.Draw("ALP")
+  groc_csvv2.Draw("LP")
+  groc_deepcsv.SetLineStyle(2)
+  groc_csvv2.SetLineColor(2)
+  groc_deepcsv.GetHistogram().GetXaxis().SetTitle('b tag eff.')
+  groc_deepcsv.GetHistogram().GetYaxis().SetTitle('mistag tag eff.')
+  #groc_deepcsv.GetHistogram().SetMinimum(0.)
+  #groc_deepcsv.GetHistogram().SetMaximum(1.)
+  leg = ROOT.TLegend(0.15,0.60,0.50,0.75,'','brNDC')
+  leg.SetHeader('PU = 0')
+  leg.SetBorderSize(0)
+  leg.SetFillColor(0)
+  leg.SetTextSize(0.030)
+  leg.SetMargin(0.2)  
+  leg.SetNColumns(1)
+  leg.SetColumnSeparation(0.05)
+  leg.SetEntrySeparation(0.05)
+  leg.AddEntry(groc_deepcsv, 'DeepCSV', 'l')
+  leg.AddEntry(groc_csvv2  , 'CSVv2'  , 'l')
+  leg.Draw()
+  c.SaveAs('%s.pdf' % c.GetName())
+  c.SaveAs('%s.png' % c.GetName())
