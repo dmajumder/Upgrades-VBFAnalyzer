@@ -30,10 +30,146 @@ def getHTagEff(ptin, etain):
       else: continue
   return 0
 
-files  = sys.argv[1]
+import optparse
 
-fout = ROOT.TFile(files.rstrip().replace('txt', 'root'), 'RECREATE')
+options = optparse.OptionParser()
+
+options.add_option('-f', '--files',  
+    dest="files", 
+    default="VBF_M1500_W01_PU200.txt",
+    type="string",
+    )
+options.add_option('-n', '--maxEvts',  
+    dest="maxEvts", 
+    default=-1,
+    type="int",
+    )
+
+evtsel = optparse.OptionGroup(options, "Event selections",
+                        "Caution: Do not change by hand")
+                                            
+evtsel.add_option("--nak8min", 
+    dest="nak8Min", 
+    default=2,
+    type="int",
+    )
+
+evtsel.add_option("--ptak8_0_Min", 
+    dest="ptak8_0_Min", 
+    default=300.,
+    type="float",
+    )
+
+evtsel.add_option("--ptak8_1_Min", 
+    dest="ptak8_1_Min", 
+    default=300.,
+    type="float",
+    )
+
+evtsel.add_option("--etaak8_0_Max", 
+    dest="etaak8_0_Max", 
+    default=3.0,
+    type="float",
+    )
+
+evtsel.add_option("--etaak8_1_Max", 
+    dest="etaak8_1_Max", 
+    default=3.0,
+    type="float",
+    )
+
+evtsel.add_option("--detaak8Max", 
+    dest="detaak8Max", 
+    default=1.3,
+    type="float",
+    )
+
+evtsel.add_option("--t21_0_Max", 
+    dest="t21_0_Max", 
+    default=0.55,
+    type="float",
+    )
+
+evtsel.add_option("--t21_1_Max", 
+    dest="t21_1_Max", 
+    default=0.55,
+    type="float",
+    )
+
+evtsel.add_option("--msd_0_Min", 
+    dest="msd_0_Min", 
+    default=80.,
+    type="float",
+    )
+
+evtsel.add_option("--msd_0_Max", 
+    dest="msd_0_Max", 
+    default=160.,
+    type="float",
+    )
+
+evtsel.add_option("--msd_1_Min", 
+    dest="msd_1_Min", 
+    default=60.,
+    type="float",
+    )
+
+evtsel.add_option("--msd_1_Max", 
+    dest="msd_1_Max", 
+    default=140.,
+    type="float",
+    )
+
+evtsel.add_option("--deepcsvMin", 
+    dest="deepcsvMin", 
+    default=0.6324, # deepcsvl=0.2219 deepcsvm=0.6324
+    type="float",
+    )
+
+evtsel.add_option("--ptak4Min", 
+    dest="ptak4Min", 
+    default=50., 
+    type="float",
+    )
+
+evtsel.add_option("--etaak4Max", 
+    dest="etaak4Max", 
+    default=5.0, 
+    type="float",
+    )
+
+evtsel.add_option("--detavbfMin", 
+    dest="detavbfMin", 
+    default=5.0, 
+    type="float",
+    )
+
+evtsel.add_option("--mjjvbfMin", 
+    dest="mjjvbfMin", 
+    default=300., 
+    type="float",
+    )
+
+options.add_option_group(evtsel)
+
+opt, remainder = options.parse_args()
+
+print opt
+
+fout = ROOT.TFile(opt.files.rstrip().replace('txt', 'root'), 'RECREATE')
 fout.cd()
+
+h2_msd0_npv                  = ROOT.TH2D("h2_msd0_npv"                  ,";n(PV);Soft dropped mass (leding AK8) [GeV];;"  , 200, 0., 200., 20, 0., 200.)
+h2_msd1_npv                  = ROOT.TH2D("h2_msd1_npv"                  ,";n(PV);Soft dropped mass (2nd AK8) [GeV];;"     , 200, 0., 200., 20, 0., 200.)
+
+h2_bFl_sjpt_sjeta            = ROOT.TH2D("h2_bFl_sjpt_sjeta"            ,";p_{T} (subjet) [GeV]; #eta (subjet);;", 200, 0., 2000, 50, -5, 5)
+h2_bFl_sjpt_sjeta_btagged    = ROOT.TH2D("h2_bFl_sjpt_sjeta_btagged"    ,";p_{T} (subjet) [GeV]; #eta (subjet);;", 200, 0., 2000, 50, -5, 5)
+                                                 
+h2_cFl_sjpt_sjeta            = ROOT.TH2D("h2_cFl_sjpt_sjeta"            ,";p_{T} (subjet) [GeV]; #eta (subjet);;", 150, 0., 3000, 50, -5, 5)
+h2_cFl_sjpt_sjeta_btagged    = ROOT.TH2D("h2_cFl_sjpt_sjeta_btagged"    ,";p_{T} (subjet) [GeV]; #eta (subjet);;", 150, 0., 3000, 50, -5, 5)
+                                                 
+h2_lFl_sjpt_sjeta            = ROOT.TH2D("h2_lFl_sjpt_sjeta"            ,";p_{T} (subjet) [GeV]; #eta (subjet);;", 150, 0., 3000, 50, -5, 5)
+h2_lFl_sjpt_sjeta_btagged    = ROOT.TH2D("h2_lFl_sjpt_sjeta_btagged"    ,";p_{T} (subjet) [GeV]; #eta (subjet);;", 150, 0., 3000, 50, -5, 5)
 
 h2_ak8pt_ak8eta              = ROOT.TH2D("h2_ak8pt_ak8eta"              ,";p_{T} (AK8) [GeV]; #eta (AK8);;", 150, 0., 3000, 50, -5, 5)
 h2_ak8pt_ak8eta_htagged      = ROOT.TH2D("h2_ak8pt_ak8eta_htagged"      ,";p_{T} (AK8) [GeV]; #eta (AK8);;", 150, 0., 3000, 50, -5, 5)
@@ -74,7 +210,7 @@ h_mjj_novbf_nosjbtag         = ROOT.TH1D("h_mjj_novbf_nosjbtag"         ,";M(jj)
 h_mjj_novbf_2sjbtag          = ROOT.TH1D("h_mjj_novbf_2sjbtag"          ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
 h_mjj                        = ROOT.TH1D("h_mjj"                        ,";M(jj) [GeV]; Events;"         ,400  ,500.   ,4500 )
 
-h_cutflow                    = ROOT.TH1D("h_cutflow"                    ,";;Efficiency;"                 ,10   ,0.5    ,10.5 )
+h_cutflow                    = ROOT.TH1D("h_cutflow"                    ,";;Events;"                     ,10   ,0.5    ,10.5 )
 
 h_cutflow.GetXaxis().SetBinLabel(1 ,"All evts") ; 
 h_cutflow.GetXaxis().SetBinLabel(2 ,"AK8 jets") ; 
@@ -87,14 +223,14 @@ h_cutflow.GetXaxis().SetBinLabel(8 ,"> 2 Subjet b") ;
 h_cutflow.GetXaxis().SetBinLabel(9 ,"> 3 Subjet b") ; 
 h_cutflow.GetXaxis().SetBinLabel(10,"VBF") ; 
 
-fnames = [line.strip() for line in open(files, 'r')]
+fnames = [line.strip() for line in open(opt.files, 'r')]
 
-try: maxEvts = int(sys.argv[2])
-except:  maxEvts = -1
+try: doqcdmaps = bool(sys.argv[2])
+except: doqcdmaps = False
 
 ievt = 0
 for fname in fnames:
-  if maxEvts > 0 and ievt > maxEvts: break
+  if opt.maxEvts > 0 and ievt > opt.maxEvts: break
   if ievt%100 == 0: print " Processing evt %i" % ievt
 
   print 'Opening file %s' % fname
@@ -106,69 +242,129 @@ for fname in fnames:
 
   for event in tree:
 
-    if maxEvts > 0 and ievt > maxEvts: break
+    if opt.maxEvts > 0 and ievt > opt.maxEvts: break
     if ievt%100 == 0: print " Processing evt %i" % ievt
+                                 
+    ievt += 1
 
     pts             = event.AK8JetsPuppi_pt
-    etas            = event.AK8JetsPuppi_eta
-    phis            = event.AK8JetsPuppi_phi
-    masses          = event.AK8JetsPuppi_mass
+    pts_ak4         = event.AK4JetsCHS_pt
+    sj0_pts         = event.AK8JetsPuppi_sj0pt
+    sj1_pts         = event.AK8JetsPuppi_sj1pt
+
+    nak8 = len(pts)
+    nak4 = len(pts_ak4)
+
+    h_cutflow.Fill(1)
+
+    ### Selecting at least two AK8 jets with two subjets, and at least two AK4 jets per event:
+    if nak8 >= opt.nak8Min and len(sj0_pts) >= 2 and len(sj1_pts) >= 2:
+      h_cutflow.Fill(2)
+    else: continue
+
+    etas   = event.AK8JetsPuppi_eta
+
+    ptsel  = pts[0] > opt.ptak8_0_Min and pts[1] > opt.ptak8_1_Min
+    etasel = abs(etas[0]) < opt.etaak8_0_Max and abs(etas[1]) < opt.etaak8_1_Max
+
+    if ptsel and etasel: 
+      h_cutflow.Fill(3)
+    else: continue
+
+    detasel = abs(etas[0] - etas[1]) < opt.detaak8Max
+    if detasel:
+      h_cutflow.Fill(4)
+    else: continue
+
     tau1s           = event.AK8JetsPuppi_tau1Puppi
     tau2s           = event.AK8JetsPuppi_tau2Puppi
+
+    tau21sel = tau2s[0]/tau1s[0] < opt.t21_0_Max and tau2s[1]/tau1s[1] < opt.t21_1_Max
+    if tau21sel:
+      h_cutflow.Fill(5)
+    else: continue 
+
     sd_masses       = event.AK8JetsPuppi_softDropMassPuppi 
 
-    pts_ak4         = event.AK4JetsCHS_pt
+    npv =          event.npv
+    h2_msd0_npv.Fill(npv, sd_masses[0])
+    h2_msd1_npv.Fill(npv, sd_masses[1])
+
+    msdsel     = opt.msd_0_Min < sd_masses[0] < opt.msd_0_Max and opt.msd_1_Min < sd_masses[1] < opt.msd_1_Max
+    if msdsel:
+      h_cutflow.Fill(6)
+    else: continue 
+
+    sj0_etas        = event.AK8JetsPuppi_sj0eta
+    sj1_etas        = event.AK8JetsPuppi_sj1eta
+    sj0_fls         = event.AK8JetsPuppi_sj0partonflavour
+    sj1_fls         = event.AK8JetsPuppi_sj1hadronflavour
+    deepcsv_sj0s    = event.AK8JetsPuppi_sj0deepcsv
+    deepcsv_sj1s    = event.AK8JetsPuppi_sj1deepcsv
+
+    for i in [0,1]:
+      if abs(sj0_fls[i]) == 5: h2_bFl_sjpt_sjeta.Fill(sj0_pts[i], sj0_etas[i])
+      elif abs(sj0_fls[i]) == 4: h2_cFl_sjpt_sjeta.Fill(sj0_pts[i], sj0_etas[i])
+      else: h2_lFl_sjpt_sjeta.Fill(sj0_pts[i], sj0_etas[i])
+
+      if abs(sj1_fls[i]) == 5: h2_bFl_sjpt_sjeta.Fill(sj1_pts[i], sj1_etas[i])
+      elif abs(sj1_fls[i]) == 4: h2_cFl_sjpt_sjeta.Fill(sj1_pts[i], sj1_etas[i])
+      else: h2_lFl_sjpt_sjeta.Fill(sj1_pts[i], sj1_etas[i])
+
+      if deepcsv_sj0s[i] > opt.deepcsvMin: 
+        if abs(sj0_fls[i]) == 5: h2_bFl_sjpt_sjeta_btagged.Fill(sj0_pts[i], sj0_etas[i])
+        elif abs(sj0_fls[i]) == 4: h2_cFl_sjpt_sjeta_btagged.Fill(sj0_pts[i], sj0_etas[i])
+        else: h2_lFl_sjpt_sjeta_btagged.Fill(sj0_pts[i], sj0_etas[i])
+
+      if deepcsv_sj1s[i] > opt.deepcsvMin: 
+        if abs(sj1_fls[i]) == 5: h2_bFl_sjpt_sjeta_btagged.Fill(sj1_pts[i], sj1_etas[i])
+        elif abs(sj1_fls[i]) == 4: h2_cFl_sjpt_sjeta_btagged.Fill(sj1_pts[i], sj1_etas[i])
+        else: h2_lFl_sjpt_sjeta_btagged.Fill(sj1_pts[i], sj1_etas[i])
+
+    sjbtagl_1 = deepcsv_sj0s[0] > opt.deepcsvMin or deepcsv_sj1s[0] > opt.deepcsvMin  or deepcsv_sj0s[1] > opt.deepcsvMin or deepcsv_sj1s[1] > opt.deepcsvMin
+    sjbtagl_2 = (deepcsv_sj0s[0] > opt.deepcsvMin or deepcsv_sj1s[0] > opt.deepcsvMin) and (deepcsv_sj0s[1] > opt.deepcsvMin or deepcsv_sj1s[1] > opt.deepcsvMin) 
+    sjbtagl_3 = ( (deepcsv_sj0s[0] > opt.deepcsvMin and deepcsv_sj1s[0] > opt.deepcsvMin) and (deepcsv_sj0s[1] > opt.deepcsvMin or deepcsv_sj1s[1] > opt.deepcsvMin) ) or\
+        ( (deepcsv_sj0s[0] > opt.deepcsvMin or deepcsv_sj1s[0] > opt.deepcsvMin) and (deepcsv_sj0s[1] > opt.deepcsvMin and deepcsv_sj1s[1] > opt.deepcsvMin) )
+    sjbtagl_4 = deepcsv_sj0s[0] > opt.deepcsvMin and deepcsv_sj1s[0] > opt.deepcsvMin  and deepcsv_sj0s[1] > opt.deepcsvMin and deepcsv_sj1s[1] > opt.deepcsvMin 
+
+    if sjbtagl_2:
+      h_cutflow.Fill(7)
+      if sjbtagl_3:
+        h_cutflow.Fill(8)
+        if sjbtagl_4:
+          h_cutflow.Fill(9)
+
+    sjbtagsel = sjbtagl_4
+    if not sjbtagsel: continue
+
+    phis            = event.AK8JetsPuppi_phi
+    masses          = event.AK8JetsPuppi_mass
+
+    p4_ak80 = ROOT.TLorentzVector()
+    p4_ak81 = ROOT.TLorentzVector()
+    p4_ak80.SetPtEtaPhiM(pts[0], etas[0], phis[0], masses[0])
+    p4_ak81.SetPtEtaPhiM(pts[1], etas[1], phis[1], masses[1])
+    mjj = (p4_ak80 + p4_ak81).Mag()
+
+    h2_ak8pt_ak8eta.Fill(pts[0], etas[0])
+    h2_ak8pt_ak8eta.Fill(pts[1], etas[1])
+    h_mjj_novbf_2sjbtag.Fill(mjj)
+
     pts_ak4gen      = event.AK4JetsCHS_genjetpt
     etas_ak4        = event.AK4JetsCHS_eta
     phis_ak4        = event.AK4JetsCHS_phi
     energies_ak4    = event.AK4JetsCHS_energy
 
-    sj0_pts         = event.AK8JetsPuppi_sj0pt
-    sj1_pts         = event.AK8JetsPuppi_sj1pt
-    csvv2_sj0s      = event.AK8JetsPuppi_sj0csvv2
-    csvv2_sj1s      = event.AK8JetsPuppi_sj1csvv2
-    deepcsv_sj0s    = event.AK8JetsPuppi_sj0deepcsv
-    deepcsv_sj1s    = event.AK8JetsPuppi_sj1deepcsv
-
-    nak8 = len(pts)
-    nak4 = len(pts_ak4)
-
     for i in range(0, len(pts_ak4gen)):
       h2_ak4pt_ak4genjetpt.Fill(pts_ak4[i], pts_ak4gen[i])
-
-    h_cutflow.Fill(1)
-
-    ### Selecting at least two AK8 jets with two subjets, and at least two AK4 jets per event:
-    if nak8 < 2 or nak4 < 2 or len(sj0_pts) < 2 or len(sj1_pts) < 2: continue
-
+    
     h_nak8.Fill(nak8)
     h_nak4.Fill(nak4)
-
-    deepcsvl = 0.2219 
-    deepcsvm = 0.6324 
-
-    ### Higgs jet sel:
-
-    ptsel      = pts[0] > 300 and pts[1] > 300
-    etasel     = abs(etas[0]) < 3 and abs(etas[1]) < 3 
-    detasel    = abs(etas[0] - etas[1]) < 1.0
-    tau21sel   = tau2s[0]/tau1s[0] < 0.6 and tau2s[1]/tau1s[1] < 0.6
-    msdsel     = 80 < sd_masses[0] < 160 and 60 < sd_masses[1] < 140
-
-    sjbtag_1 = deepcsv_sj0s[0] > deepcsvm or deepcsv_sj1s[0] > deepcsvm  or deepcsv_sj0s[1] > deepcsvm or deepcsv_sj1s[1] > deepcsvm
-    sjbtag_2 = (deepcsv_sj0s[0] > deepcsvm or deepcsv_sj1s[0] > deepcsvm) and (deepcsv_sj0s[1] > deepcsvm or deepcsv_sj1s[1] > deepcsvm) 
-    sjbtag_3 = ( (deepcsv_sj0s[0] > deepcsvm and deepcsv_sj1s[0] > deepcsvm) and (deepcsv_sj0s[1] > deepcsvm or deepcsv_sj1s[1] > deepcsvm) ) or\
-        ( (deepcsv_sj0s[0] > deepcsvm or deepcsv_sj1s[0] > deepcsvm) and (deepcsv_sj0s[1] > deepcsvm and deepcsv_sj1s[1] > deepcsvm) )
-    sjbtag_4 = deepcsv_sj0s[0] > deepcsvm and deepcsv_sj1s[0] > deepcsvm  and deepcsv_sj0s[1] > deepcsvm and deepcsv_sj1s[1] > deepcsvm 
-
-    hjetssel   = ptsel and etasel and msdsel and tau21sel 
-
-    sjbtagsel = sjbtag_4
 
     ### Select AK4 jets for VBF pair identification
     p4_ak4sel = []
     for i in range(0,nak4):
-      if pts_ak4[i] > 50. and abs(etas_ak4[i]) < 5.: 
+      if pts_ak4[i] > opt.ptak4Min and abs(etas_ak4[i]) < opt.etaak4Max: 
         p4 = ROOT.TLorentzVector()
         p4.SetPtEtaPhiE(pts_ak4[i], etas_ak4[i], phis_ak4[i], energies_ak4[i])
         p4_ak4sel.append(p4)
@@ -182,107 +378,39 @@ for fname in fnames:
         p41 = p4_ak4sel[j]
         detavbf = abs(p40.Eta() - p41.Eta())
         mjjvbf = (p40+p41).Mag()
-        if detavbf > 4. and mjjvbf > 300.:
+        h_mjjvbf.Fill(mjjvbf)
+        h_deltaEta.Fill(detavbf)
+        if detavbf > opt.detavbfMin and mjjvbf > opt.mjjvbfMin:
           nvbfpairs += 1
-        ### Fill VBF related quantities
-        if hjetssel:
-          h_mjjvbf.Fill(mjjvbf)
-          h_deltaEta.Fill(detavbf)
-          if detavbf > 4. and mjjvbf > 300.:
-            h_vbf0pt.Fill(p40.Pt())
-            h_vbf1pt.Fill(p41.Pt())
-            h_vbf0eta.Fill(p40.Eta())
-            h_vbf1eta.Fill(p41.Eta())
+          h_vbf0pt.Fill(p40.Pt())
+          h_vbf1pt.Fill(p41.Pt())
+          h_vbf0eta.Fill(p40.Eta())
+          h_vbf1eta.Fill(p41.Eta())
     ### VBF jet sel:
     vbfsel = nvbfpairs > 0
 
-    h_cutflow.Fill(2)
-    if ptsel and etasel: 
-      h_cutflow.Fill(3)
-      if detasel:
-        h_cutflow.Fill(4)
-        if tau21sel:
-          h_cutflow.Fill(5)
-          if msdsel:
-            h_cutflow.Fill(6)
-            if sjbtag_2:
-              h_cutflow.Fill(7)
-              if sjbtag_3:
-                h_cutflow.Fill(8)
-                if sjbtag_4:
-                  h_cutflow.Fill(9)
-                  if vbfsel:
-                    h_cutflow.Fill(10)
-
     h_nvbfpairs.Fill(nvbfpairs)
 
-    h2_ak8pt_ak8eta.Fill(pts[0], etas[0])
-    h2_ak8pt_ak8eta.Fill(pts[1], etas[1])
-   
-    ### Jet 1 passing Higgs tagging:
-    if 80 < sd_masses[0] < 160 and tau2s[0]/tau1s[0] < 0.6 and deepcsv_sj0s[0] > deepcsvl and deepcsv_sj1s[0] > deepcsvl:
-      h2_ak8pt_ak8eta_htagged.Fill(pts[0], etas[0])
-    ### Jet 2 passing Higgs tagging:
-    if 80 < sd_masses[1] < 160 and tau2s[1]/tau1s[1] < 0.6 and deepcsv_sj0s[1] > deepcsvl and deepcsv_sj1s[1] > deepcsvl:
-      h2_ak8pt_ak8eta_htagged.Fill(pts[1], etas[1])
-
-    ### Fill Higgs jet quantities after VBF selection:
-    p4_ak80 = ROOT.TLorentzVector()
-    p4_ak81 = ROOT.TLorentzVector()
-    p4_ak80.SetPtEtaPhiM(pts[0], etas[0], phis[0], masses[0])
-    p4_ak81.SetPtEtaPhiM(pts[1], etas[1], phis[1], masses[1])
-    mjj = (p4_ak80 + p4_ak81).Mag()
-
-    if ptsel and etasel and msdsel and tau21sel:
-      h_mjj_novbf_nosjbtag.Fill(mjj)
-
     if vbfsel:
-      h_mjj_vbfsel.Fill(mjj)
-      hjet1eff = getHTagEff(pts[0], etas[0])
-      hjet2eff = getHTagEff(pts[1], etas[1])
-      h_mjj_vbfsel_scaledHTagEff.Fill(mjj, hjet1eff*hjet2eff)
+      h_cutflow.Fill(10)
+    else: continue
 
-      if etasel and msdsel and tau21sel and sjbtagsel:
-        h_ak80pt.Fill(pts[0])
-        h_ak81pt.Fill(pts[1])
+    csvv2_sj0s = event.AK8JetsPuppi_sj0csvv2
+    csvv2_sj1s = event.AK8JetsPuppi_sj1csvv2
 
-      if ptsel and msdsel and tau21sel and sjbtagsel:
-        h_ak80eta.Fill(etas[0])
-        h_ak81eta.Fill(etas[1])
+    h_mjj_vbfsel.Fill(mjj)
+    hjet1eff = getHTagEff(pts[0], etas[0])
+    hjet2eff = getHTagEff(pts[1], etas[1])
+    h_mjj_vbfsel_scaledHTagEff.Fill(mjj, hjet1eff*hjet2eff)
 
-      if ptsel and etasel and tau21sel and sjbtagsel:
-        h_sdmass_ak80.Fill(sd_masses[0])
-        h_sdmass_ak81.Fill(sd_masses[1])
+    h_mjj.Fill(mjj)
 
-      if ptsel and etasel and msdsel and sjbtagsel:
-        h_ak80_tau2_tau1.Fill(tau2s[0]/tau1s[0])
-        h_ak81_tau2_tau1.Fill(tau2s[1]/tau1s[1])
+fout.cd()
 
-      if ptsel and etasel and msdsel and tau21sel:
-        h_mjj_novbf_nosjbtag.Fill(mjj)
-        h_sj0_pts.Fill(sj0_pts[0]) 
-        h_sj0_pts.Fill(sj0_pts[1]) 
-        h_sj1_pts.Fill(sj1_pts[0]) 
-        h_sj1_pts.Fill(sj1_pts[1]) 
-        h_sj0_csvv2.Fill(csvv2_sj0s[0]) 
-        h_sj0_csvv2.Fill(csvv2_sj0s[1]) 
-        h_sj1_csvv2.Fill(csvv2_sj1s[0]) 
-        h_sj1_csvv2.Fill(csvv2_sj1s[1]) 
-        h_sj0_deepcsv.Fill(deepcsv_sj0s[0]) 
-        h_sj0_deepcsv.Fill(deepcsv_sj0s[1]) 
-        h_sj1_deepcsv.Fill(deepcsv_sj1s[0]) 
-        h_sj1_deepcsv.Fill(deepcsv_sj1s[1]) 
+h_cutflow_eff = h_cutflow.Clone("h_cutflow_eff")
+h_cutflow_eff.SetTitle(";;Efficiency;")
 
-      if ptsel and etasel and msdsel and tau21sel and sjbtag_2:
-        h_mjj_novbf_2sjbtag.Fill(mjj)
-
-      ### Full event selection
-      if hjetssel and sjbtagsel:
-        h_mjj.Fill(mjj)
-                                 
-    ievt += 1
-
-h_cutflow.Scale(1./h_cutflow.GetBinContent(1))
+h_cutflow_eff.Scale(1./h_cutflow.GetBinContent(1))
 
 fout.Write()
 fout.Close()
