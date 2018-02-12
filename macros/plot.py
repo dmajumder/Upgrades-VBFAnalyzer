@@ -12,7 +12,7 @@ The script looks for the following input files in the current dir:
 You may also have the same set of files with PU=200:
   VBF_M1500_W01_PU200.root
   VBF_M3000_W01_PU200.root
-  QCD_Mdijet-1000toInf_PU200.rooto
+  QCD_Mdijet-1000toInf_PU200.root
 '''
 
 helper   = imp.load_source('fix'     , 'help.py')
@@ -220,7 +220,7 @@ def plotStacked(hists, pu, xtitle, ytitle, xlow, xhigh, rebin, logy):
 
   fout.Close()
 
-signalEff()
+#signalEff()
 
 #plotStacked('h_mjj'                       ,   200, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
 #plotStacked('h_mjj'                       ,     0, 'm_{JJ} [GeV]', 'Events', 1000., 4000., 5, 1)
@@ -290,5 +290,95 @@ def htagEff(fname):
   fout.Close()
 
   return heff
+
+def msd(fin):
+  f = ROOT.TFile.Open(fin, "read")
+
+  h2_msd0_npv = f.Get("h2_msd0_npv")
+  h2_msd1_npv = f.Get("h2_msd1_npv")
+
+  h2_msd0_npv_pfx = h2_msd0_npv.ProfileX()
+  h2_msd1_npv_pfx = h2_msd1_npv.ProfileX()
+
+  h2_msd0_npv_pfx.SetMarkerStyle(20)
+  h2_msd1_npv_pfx.SetMarkerStyle(20)
+
+  h2_msd0_npv.GetZaxis().SetTitle("Events/ bin")
+  h2_msd1_npv.GetZaxis().SetTitle("Events/ bin")
+
+  c0 = ROOT.TCanvas("c_msd0_npv", "", 800, 600)
+  c0.cd()
+  c0.SetRightMargin(0.15)
+  h2_msd0_npv.Draw("colz")
+  h2_msd0_npv_pfx.Draw("same")
+  c0.SaveAs(c0.GetName()+".pdf")
+
+  c1 = ROOT.TCanvas("c_msd1_npv", "", 800, 600)
+  c1.cd()
+  c1.SetRightMargin(0.15)
+  h2_msd1_npv.Draw("colz")
+  h2_msd1_npv_pfx.Draw("same")
+  c1.SaveAs(c1.GetName()+".pdf")
+
+#msd("VBF_M1500_W01_PU200.root")
+#msd("VBF_M3000_W01_PU200.root")
+
+def plotCompare(fins, hname, labels):
+  
+  hframe = ROOT.TH1D("hframe",";N(VBF pairs); A.U.;" ,201  ,-0.5  ,200.5)
+
+  c = ROOT.TCanvas("c_%s" % hname, "", 800, 600)
+  c.cd()
+  c.SetLogy()
+
+  hframe.Draw()
+  c.SetSelected(hframe)
+  c.Modified()
+  c.Update()
+
+  leg = ROOT.TLegend(0.50,0.60,0.88,0.75,'','brNDC')
+  leg.SetBorderSize(0)
+  leg.SetFillColor(0)
+  leg.SetTextSize(0.030)
+  leg.SetMargin(0.2)  
+  leg.SetNColumns(2)
+  leg.SetColumnSeparation(0.05)
+  leg.SetEntrySeparation(0.05)
+  leg.SetHeader("Signal: M=3000 GeV")
+  
+  hmax = 2
+  i = 1
+  for fin in fins:
+    f = ROOT.TFile.Open(fin, "read")
+    label = labels[fins.index(fin)]
+    hist = f.Get(hname)
+    h = copy.deepcopy(hist)
+    h.Scale(1./h.Integral())
+
+    if h.GetMaximum() > hmax: hmax = h.GetMaximum()
+    hframe.SetMaximum(1.2* hmax)
+
+    h.SetName("%s_label" % hname)
+    h.Draw("histsame")
+    h.SetLineWidth(2)
+    h.SetLineColor(i)
+
+    c.SetSelected(h)
+    leg.AddEntry(h, label, 'l')
+
+    i += 1
+
+  leg.Draw()
+
+  c.RedrawAxis()
+  c.Update()
+
+  c.SaveAs('%s.pdf' % c.GetName())
+  c.SaveAs('%s.png' % c.GetName())
+
+fins=['VBF_M3000_W01_PU200_vbfpairs.root', 'VBF_M3000_W01_PU0_vbfpairs.root']
+labels = ['PU200', 'PU0']
+
+plotCompare(fins, "h_nvbfpairs", labels)
 
 #htagEff('/afs/cern.ch/user/l/lata/public/plots/QCD_0PU.root')
