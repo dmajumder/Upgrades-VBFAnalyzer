@@ -122,7 +122,7 @@ evtsel.add_option("--msd_1_Max",
 
 evtsel.add_option("--deepcsvMin", 
     dest="deepcsvMin", 
-    default=0.6324, # deepcsvl=0.2219 deepcsvm=0.6324
+    default=0.1522, # deepcsvl=0.1522 deepcsvm=0.4941
     type="float",
     )
 
