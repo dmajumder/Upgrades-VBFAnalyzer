@@ -64,7 +64,7 @@ def main():
   
   evtsel.add_option("--ptak8_1_Min", 
       dest="ptak8_1_Min", 
-      default=200.,
+      default=300.,
       type="float",
       )
   
@@ -82,19 +82,19 @@ def main():
   
   evtsel.add_option("--detaak8Max", 
       dest="detaak8Max", 
-      default=1.3,
+      default=100.,
       type="float",
       )
   
   evtsel.add_option("--t21_0_Max", 
       dest="t21_0_Max", 
-      default=0.55,
+      default=0.60,
       type="float",
       )
   
   evtsel.add_option("--t21_1_Max", 
       dest="t21_1_Max", 
-      default=0.55,
+      default=0.60,
       type="float",
       )
   
