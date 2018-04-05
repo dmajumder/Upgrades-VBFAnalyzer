@@ -258,7 +258,6 @@ def main():
       gen_id = event.GenParticles_genpid
       for i in range(len(gen_pt)):
         if gen_id[i] == 25: 
-          print "Higgs mom pid = {}".format(gen_momid[i])
           h_genH_pt.Fill(gen_pt[i])
           h_genH_eta.Fill(gen_eta[i])
 
