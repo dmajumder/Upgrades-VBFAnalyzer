@@ -391,7 +391,7 @@ def main():
           mjjvbf = (p40+p41).Mag()
           h_mjjvbf.Fill(mjjvbf)
           h_deltaEta.Fill(detavbf)
-          if detavbf > opt.detavbfMin and mjjvbf > opt.mjjvbfMin:
+          if p40.Eta()*p41.Eta() < 0. and detavbf > opt.detavbfMin and mjjvbf > opt.mjjvbfMin:
             nvbfpairs += 1
             h_vbf0pt.Fill(p40.Pt())
             h_vbf1pt.Fill(p41.Pt())
