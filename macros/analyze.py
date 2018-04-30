@@ -462,8 +462,8 @@ def main():
             h_cutflow.Fill(10)
   
       mjj = (p4_ak80 + p4_ak81).Mag()
-      if sjbtag_3: h_mjj_3b.Fill(mjj, wt_3b)
-      if sjbtag_4: h_mjj_4b.Fill(mjj, wt_4b)
+      h_mjj_3b.Fill(mjj, wt_3b)
+      h_mjj_4b.Fill(mjj, wt_4b)
   
   fout.cd()
   
